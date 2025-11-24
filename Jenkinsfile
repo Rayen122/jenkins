@@ -10,6 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "🚀 Pipeline lancé automatiquement via Poll SCM !"
+                echo"hhhhhhhhhhh"
             }
         }
     }
