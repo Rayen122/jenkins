@@ -10,6 +10,8 @@ pipeline {
             steps {
                 echo "🔥 Pipeline lancé automatiquement après un commit !"
                 echo "➡️ Construction du projet..."
+                echo "Pipeline lancé automatiquement"
+
             }
         }
 
