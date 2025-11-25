@@ -2,7 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')  // ID mte3 credentials dans Jenkins
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred22')
+
+ // ID mte3 credentials dans Jenkins
         DOCKERHUB_REPO = "rayen122/student-management"        // Remplaceh b esm repository mte3ek
         IMAGE_NAME = "student-management"
     }
