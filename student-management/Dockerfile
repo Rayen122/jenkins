@@ -6,7 +6,6 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred22')
         DOCKERHUB_REPO = "rayen122/student-management"
         IMAGE_NAME = "student-management"
     }
@@ -20,8 +19,8 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                dir('student-management') {
-                    echo "Building Maven project inside student-management folder"
+                dir('jenkins/student-management') {
+                    echo "Building Maven project inside jenkins/student-management"
                     sh "mvn clean package -DskipTests"
                 }
             }
@@ -29,25 +28,19 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir('student-management') {
+                dir('jenkins/student-management') {
                     echo "Building Docker image..."
                     sh "docker build -t ${IMAGE_NAME}:latest ."
                 }
             }
         }
 
-        stage('Docker Login') {
+        stage('Docker Login & Push') {
             steps {
-                echo "Logging into Docker Hub..."
-                sh """
-                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
-                """
-            }
-        }
-
-        stage('Push Image') {
-            steps {
-                echo "Pushing Docker image to Docker Hub..."
+                // safer credential usage
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred22', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                }
                 sh "docker tag ${IMAGE_NAME}:latest ${DOCKERHUB_REPO}:latest"
                 sh "docker push ${DOCKERHUB_REPO}:latest"
             }
