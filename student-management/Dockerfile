@@ -1,15 +1,11 @@
-FROM openjdk:17.0.1-jdk-slim
+# IMAGE DE BASE LÉGÈRE (≈ 84 MB)
+FROM amazoncorretto:17-alpine
 
+# Dossier de travail
 WORKDIR /app
 
-# Copier le jar (application)
-COPY target/*.jar /app/app.jar
+# Copier le JAR généré par Maven
+COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
-# Génération automatique d'une image ASCII dans le container
-RUN echo "**********************"  > /app/photo.txt && \
-    echo "*   BONJOUR RAYEN    *" >> /app/photo.txt && \
-    echo "**********************" >> /app/photo.txt
-
-EXPOSE 8089
-
-CMD ["sh", "-c", "echo 'Voici la photo générée :' && cat /app/photo.txt && java -jar /app/app.jar"]
+# Lancement de l'application
+CMD ["java", "-jar", "app.jar"]
