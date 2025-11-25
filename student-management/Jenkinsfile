@@ -11,6 +11,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -19,8 +20,7 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                dir('jenkins/student-management') {
-                    echo "Building Maven project inside jenkins/student-management"
+                dir('student-management') {
                     sh "mvn clean package -DskipTests"
                 }
             }
@@ -28,27 +28,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir('jenkins/student-management') {
-                    echo "Building Docker image..."
+                dir('student-management') {
                     sh "docker build -t ${IMAGE_NAME}:latest ."
                 }
             }
         }
 
-        stage('Docker Login & Push') {
+        stage('Test Generated Image') {
             steps {
-                // safer credential usage
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred22', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                }
-                sh "docker tag ${IMAGE_NAME}:latest ${DOCKERHUB_REPO}:latest"
-                sh "docker push ${DOCKERHUB_REPO}:latest"
+                echo "Testing if image was generated inside the container"
+                sh """
+                    docker run --rm student-management:latest \
+                    ls -l /app
+                """
             }
         }
     }
 
     post {
-        success { echo "Pipeline completed successfully!" }
-        failure { echo "Pipeline failed!" }
+        success {
+            echo "Build OK ✔"
+        }
+        failure {
+            echo "Build FAILED ❌"
+        }
     }
 }
