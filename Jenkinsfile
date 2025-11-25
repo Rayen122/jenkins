@@ -11,6 +11,7 @@ pipeline {
             steps {
                 echo "🚀 Pipeline lancé automatiquement via Poll SCM !"
                 echo"hhhhhhhhhhh"
+                echo"test"
             }
         }
     }
