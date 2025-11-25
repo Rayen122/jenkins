@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -7,13 +6,11 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred22')
         DOCKERHUB_REPO = "rayen122/student-management"
         IMAGE_NAME = "student-management"
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -22,31 +19,36 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                echo "Compilation du projet Maven..."
-                sh "mvn clean package -DskipTests"
+                dir('jenkins/student-management') {
+                    echo "Building Maven project inside jenkins/student-management"
+                    sh "mvn clean package -DskipTests"
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                dir('jenkins/student-management') {
+                    echo "Building Docker image..."
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                }
             }
         }
 
-        stage('Login DockerHub') {
+        stage('Docker Login & Push') {
             steps {
-                sh """
-                    echo ${DOCKERHUB_CREDENTIALS_PSW} | \
-                    docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
-                """
-            }
-        }
-
-        stage('Push Image') {
-            steps {
+                // safer credential usage
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred22', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                }
                 sh "docker tag ${IMAGE_NAME}:latest ${DOCKERHUB_REPO}:latest"
                 sh "docker push ${DOCKERHUB_REPO}:latest"
             }
         }
+    }
+
+    post {
+        success { echo "Pipeline completed successfully!" }
+        failure { echo "Pipeline failed!" }
     }
 }
